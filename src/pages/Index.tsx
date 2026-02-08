@@ -14,6 +14,7 @@ import { OwnershipTrends } from "@/components/dashboard/OwnershipTrends";
 import { LeaderboardTeaser } from "@/components/dashboard/LeaderboardTeaser";
 import { RealLeagueStandings } from "@/components/dashboard/RealLeagueStandings";
 import { FeaturedTeams } from "@/components/dashboard/FeaturedTeams";
+import { ScrollReveal } from "@/components/animations/ScrollReveal";
 import { Search } from "lucide-react";
 import {
   mockContests,
@@ -58,66 +59,127 @@ export default function Index() {
       <section className="relative overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
-          <div className="absolute top-0 right-0 w-[300px] h-[300px] rounded-full bg-primary/3 blur-[80px]" />
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px]"
+          />
+          <motion.div
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.2, 0.4, 0.2],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+            className="absolute top-0 right-0 w-[300px] h-[300px] rounded-full bg-primary/5 blur-[80px]"
+          />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.15,
+                  delayChildren: 0.1
+                }
+              }
+            }}
             className="text-center max-w-2xl mx-auto"
           >
-            <div className="flex items-center justify-center gap-4 mb-4">
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: { opacity: 1, scale: 1 }
+              }}
+              className="flex items-center justify-center gap-4 mb-4"
+            >
               <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5">
                 <Zap className="w-3.5 h-3.5 text-primary" />
                 <span className="text-xs font-semibold text-primary tracking-wide">DAILY FANTASY SOCCER</span>
               </div>
               {nextContest && <MatchCountdown startTime={nextContest.startTime} />}
-            </div>
-            <h1 className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-3 leading-tight">
+            </motion.div>
+
+            <motion.h1
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              className="font-display text-4xl sm:text-5xl font-bold text-foreground mb-3 leading-tight"
+            >
               Build Your Squad.
               <br />
               <span className="text-primary text-glow">Dominate the Pitch.</span>
-            </h1>
-            <p className="text-base text-muted-foreground max-w-lg mx-auto mb-6">
-              Pick real players. Compete in daily contests. Climb the ranks. No money required.
-            </p>
-          </motion.div>
+            </motion.h1>
 
-          {/* Stats bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex justify-center gap-8 sm:gap-16"
-          >
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="flex items-center justify-center gap-1.5 ">
-                  <stat.icon className="w-3.5 h-3.5 text-primary" />
-                  <span className="font-display text-xl font-bold text-foreground">{stat.value}</span>
+            <motion.p
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              className="text-base text-muted-foreground max-w-lg mx-auto mb-6"
+            >
+              Pick real players. Compete in daily contests. Climb the ranks. No money required.
+            </motion.p>
+
+            {/* Stats bar */}
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
+              className="flex justify-center gap-8 sm:gap-16 pt-4"
+            >
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="flex items-center justify-center gap-1.5 ">
+                    <stat.icon className="w-3.5 h-3.5 text-primary" />
+                    <span className="font-display text-xl font-bold text-foreground">{stat.value}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{stat.label}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{stat.label}</span>
-              </div>
-            ))}
+              ))}
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Featured Teams Marquee */}
-      <FeaturedTeams />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
-        <UserStatsDisplay stats={mockUserStats} />
+        <ScrollReveal>
+          <UserStatsDisplay stats={mockUserStats} />
+        </ScrollReveal>
+
+        <ScrollReveal delay={0.1}>
+          <FeaturedTeams />
+        </ScrollReveal>
 
         {mockJoinedContests.length > 0 && (
-          <ResumeDraftCard contest={mockJoinedContests[0]} />
+          <ScrollReveal delay={0.15}>
+            <ResumeDraftCard contest={mockJoinedContests[0]} />
+          </ScrollReveal>
         )}
 
-        <MatchdayOverview matches={mockRealMatches} />
+        <ScrollReveal delay={0.2}>
+          <MatchdayOverview matches={mockRealMatches} />
+        </ScrollReveal>
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-12">
           {/* Left Column: Contests */}
@@ -170,11 +232,21 @@ export default function Index() {
 
           {/* Right Column: Sidebar */}
           <aside className="space-y-8">
-            <LiveTopPlayers />
-            <RealLeagueStandings />
-            <PlayerNewsFeed news={mockPlayerNews} />
-            <LeaderboardTeaser />
-            <OwnershipTrends trends={mockOwnershipTrends} />
+            <ScrollReveal delay={0.1}>
+              <LiveTopPlayers />
+            </ScrollReveal>
+            <ScrollReveal delay={0.2}>
+              <RealLeagueStandings />
+            </ScrollReveal>
+            <ScrollReveal delay={0.3}>
+              <PlayerNewsFeed news={mockPlayerNews} />
+            </ScrollReveal>
+            <ScrollReveal delay={0.4}>
+              <LeaderboardTeaser />
+            </ScrollReveal>
+            <ScrollReveal delay={0.5}>
+              <OwnershipTrends trends={mockOwnershipTrends} />
+            </ScrollReveal>
           </aside>
         </div>
       </main>

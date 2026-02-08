@@ -20,8 +20,15 @@ export function ContestCard({ contest, index }: { contest: Contest; index: numbe
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.4 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -5, scale: 1.01 }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 20,
+        delay: index * 0.05
+      }}
     >
       <Link to={`/contest/${contest.id}`} className="block group">
         <div className="glass rounded-xl p-5 hover:neon-border transition-all duration-300 relative overflow-hidden">
