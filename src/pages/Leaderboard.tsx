@@ -1,23 +1,34 @@
 import { motion } from "framer-motion";
-import { Trophy, Medal, Crown } from "lucide-react";
+import { Trophy, Medal, Crown, ArrowLeft } from "lucide-react";
 import { mockLeaderboard } from "@/data/mockData";
+import { useNavigate } from "react-router-dom";
 
 const rankIcons: Record<number, JSX.Element> = {
-  1: <Crown className="w-5 h-5 text-gold" />,
-  2: <Medal className="w-5 h-5 text-silver" />,
-  3: <Medal className="w-5 h-5 text-bronze" />,
+  1: <Crown className="w-5 h-5 text-yellow-500" />,
+  2: <Medal className="w-5 h-5 text-slate-400" />,
+  3: <Medal className="w-5 h-5 text-amber-600" />,
 };
 
 export default function Leaderboard() {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen pt-16">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 mb-4 glow-sm">
-            <Trophy className="w-7 h-7 text-primary" />
+    <div className="min-h-screen pt-24 pb-20 bg-background">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-sm font-medium">Back to Dashboard</span>
+        </button>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-4 glow-sm">
+            <Trophy className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="font-display text-3xl font-bold text-foreground">Leaderboard</h1>
-          <p className="text-muted-foreground mt-1">Premier League Gameweek 24 • Final Results</p>
+          <h1 className="font-display text-4xl font-bold text-foreground mb-2">Global Standings</h1>
+          <p className="text-muted-foreground">Premier League Gameweek 24 • Final Results</p>
         </motion.div>
 
         <div className="space-y-2">
@@ -27,9 +38,8 @@ export default function Leaderboard() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
-              className={`flex items-center gap-4 rounded-xl p-4 transition-all ${
-                entry.rank <= 3 ? "glass neon-border" : "glass"
-              }`}
+              className={`flex items-center gap-4 rounded-xl p-4 transition-all ${entry.rank <= 3 ? "glass neon-border" : "glass"
+                }`}
             >
               {/* Rank */}
               <div className="w-10 text-center">

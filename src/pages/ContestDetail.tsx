@@ -5,6 +5,7 @@ import { mockContests, mockPlayers } from "@/data/mockData";
 import { useCountdown } from "@/hooks/useCountdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ScoringRules } from "@/components/dashboard/ScoringRules";
 
 export default function ContestDetail() {
   const { id } = useParams();
@@ -32,11 +33,10 @@ export default function ContestDetail() {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <Badge variant="outline" className={`mb-3 text-[10px] font-bold tracking-widest ${
-            contest.status === "open" ? "bg-primary/20 text-primary border-primary/30" :
+          <Badge variant="outline" className={`mb-3 text-[10px] font-bold tracking-widest ${contest.status === "open" ? "bg-primary/20 text-primary border-primary/30" :
             contest.status === "locked" ? "bg-live/20 text-live border-live/30" :
-            "bg-muted text-muted-foreground border-border"
-          }`}>
+              "bg-muted text-muted-foreground border-border"
+            }`}>
             {contest.status.toUpperCase()}
           </Badge>
           <h1 className="font-display text-3xl font-bold text-foreground mb-2">{contest.title}</h1>
@@ -102,6 +102,11 @@ export default function ContestDetail() {
               </div>
             ))}
           </div>
+        </motion.div>
+
+        {/* Scoring Rules */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mb-8">
+          <ScoringRules />
         </motion.div>
 
         {/* CTA */}

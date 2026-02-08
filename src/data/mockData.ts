@@ -1,4 +1,4 @@
-import { Contest, Player, LeaderboardEntry } from "./types";
+import { Contest, Player, LeaderboardEntry, LiveEvent, UserStats, RealMatch, PlayerNews, OwnershipTrend, UserLineup } from "./types";
 
 export const mockPlayers: Player[] = [
   { id: "p1", name: "Erling Haaland", team: "Man City", position: "FWD", salary: 12000, points: 24, imageUrl: "" },
@@ -76,6 +76,159 @@ export const mockContests: Contest[] = [
     salaryCap: 100000,
     matches: ["Inter vs Juventus", "AC Milan vs Napoli"],
   },
+  {
+    id: "c6",
+    title: "MLS Weekend Special",
+    status: "open",
+    entryFee: 0,
+    prizePool: "$5,000",
+    entrants: 2100,
+    maxEntrants: 10000,
+    startTime: new Date(Date.now() + 3600000 * 12).toISOString(),
+    endTime: new Date(Date.now() + 3600000 * 36).toISOString(),
+    salaryCap: 100000,
+    matches: ["LAFC vs Galaxy", "Inter Miami vs Orlando"],
+  },
+  {
+    id: "c7",
+    title: "Bundesliga Blitz",
+    status: "open",
+    entryFee: 15,
+    prizePool: "$20,000",
+    entrants: 450,
+    maxEntrants: 2000,
+    startTime: new Date(Date.now() + 3600000 * 48).toISOString(),
+    endTime: new Date(Date.now() + 3600000 * 72).toISOString(),
+    salaryCap: 100000,
+    matches: ["Bayern vs Dortmund", "Leipzig vs Leverkusen"],
+  },
+  {
+    id: "c8",
+    title: "Friday Night Lights",
+    status: "locked",
+    entryFee: 2,
+    prizePool: "$1,000",
+    entrants: 480,
+    maxEntrants: 500,
+    startTime: new Date(Date.now() - 3600000 * 1).toISOString(),
+    endTime: new Date(Date.now() + 3600000 * 3).toISOString(),
+    salaryCap: 100000,
+    matches: ["Monaco vs Lyon", "Nice vs Marseille"],
+  },
+  {
+    id: "c9",
+    title: "Eredivisie Elite",
+    status: "open",
+    entryFee: 5,
+    prizePool: "$3,000",
+    entrants: 120,
+    maxEntrants: 1000,
+    startTime: new Date(Date.now() + 3600000 * 72).toISOString(),
+    endTime: new Date(Date.now() + 3600000 * 96).toISOString(),
+    salaryCap: 100000,
+    matches: ["Ajax vs PSV", "Feyenoord vs AZ"],
+  },
+];
+
+// Add a contest the user has joined but not finished
+export const mockJoinedContests: Contest[] = [
+  {
+    id: "c5",
+    title: "Weekend Warriors",
+    status: "open",
+    entryFee: 0,
+    prizePool: "$2,000",
+    entrants: 156,
+    maxEntrants: 1000,
+    startTime: new Date(Date.now() + 3600000 * 2).toISOString(),
+    endTime: new Date(Date.now() + 3600000 * 20).toISOString(),
+    salaryCap: 100000,
+    matches: ["Spurs vs Man Utd", "West Ham vs Wolves"],
+  }
+];
+
+export const mockUserStats: UserStats = {
+  rank: 1245,
+  totalPoints: 2450,
+  activeContests: 2,
+  pointsThisWeek: 156,
+};
+
+export const mockRealMatches: RealMatch[] = [
+  {
+    id: "m1",
+    homeTeam: "Man City",
+    awayTeam: "Liverpool",
+    homeCrest: "crest_blue_lion",
+    awayCrest: "crest_red_phoenix",
+    startTime: new Date().toISOString(),
+    status: "live",
+    score: { home: 1, away: 1 }
+  },
+  {
+    id: "m2",
+    homeTeam: "Arsenal",
+    awayTeam: "Chelsea",
+    homeCrest: "crest_gold_eagle",
+    awayCrest: "crest_green_dragon",
+    startTime: new Date(Date.now() + 3600000).toISOString(),
+    status: "scheduled"
+  },
+  {
+    id: "m3",
+    homeTeam: "Tottenham",
+    awayTeam: "Man Utd",
+    homeCrest: "crest_white_wolf",
+    awayCrest: "crest_black_panther",
+    startTime: new Date(Date.now() + 3600000 * 24).toISOString(),
+    status: "scheduled"
+  },
+];
+
+export const mockLeagueTable = [
+  { pos: 1, name: "Liverpool", gp: 24, w: 16, d: 6, l: 2, gf: 55, ga: 23, gd: 32, pts: 54 },
+  { pos: 2, name: "Man City", gp: 23, w: 16, d: 4, l: 3, gf: 56, ga: 25, gd: 31, pts: 52 },
+  { pos: 3, name: "Arsenal", gp: 24, w: 16, d: 4, l: 4, gf: 53, ga: 22, gd: 31, pts: 52 },
+  { pos: 4, name: "Tottenham", gp: 24, w: 14, d: 5, l: 5, gf: 51, ga: 38, gd: 13, pts: 47 },
+  { pos: 5, name: "Aston Villa", gp: 24, w: 14, d: 4, l: 6, gf: 50, ga: 32, gd: 18, pts: 46 },
+  { pos: 6, name: "Man Utd", gp: 24, w: 13, d: 2, l: 9, gf: 33, ga: 33, gd: 0, pts: 41 },
+  { pos: 7, name: "Newcastle", gp: 24, w: 11, d: 3, l: 10, gf: 51, ga: 39, gd: 12, pts: 36 },
+  { pos: 8, name: "West Ham", gp: 24, w: 10, d: 6, l: 8, gf: 36, ga: 42, gd: -6, pts: 36 },
+  { pos: 9, name: "Chelsea", gp: 24, w: 10, d: 4, l: 10, gf: 41, ga: 40, gd: 1, pts: 34 },
+  { pos: 10, name: "Brighton", gp: 24, w: 9, d: 8, l: 7, gf: 43, ga: 40, gd: 3, pts: 35 },
+];
+
+export const mockPlayerNews: PlayerNews[] = [
+  { id: "n1", playerName: "Kevin De Bruyne", category: "starting", headline: "Confirmed in starting lineup vs Liverpool", time: "15m ago" },
+  { id: "n2", playerName: "Bukayo Saka", category: "injury", headline: "Doubtful for Chelsea match with calf strain", time: "1h ago" },
+  { id: "n3", playerName: "Erling Haaland", category: "starting", headline: "Starting as lone striker", time: "15m ago" },
+];
+
+export const mockOwnershipTrends: OwnershipTrend[] = [
+  { playerName: "Mohamed Salah", percentage: 72, change: "up" },
+  { playerName: "Cole Palmer", percentage: 58, change: "up" },
+  { playerName: "William Saliba", percentage: 45, change: "neutral" },
+  { playerName: "Ollie Watkins", percentage: 38, change: "down" },
+];
+
+export const mockUserLineups: UserLineup[] = [
+  {
+    id: "l1",
+    contestId: "c1",
+    contestTitle: "Premier League Gameweek 24",
+    players: mockPlayers.slice(0, 5),
+    points: 124,
+    rank: 42,
+    status: "live",
+  },
+  {
+    id: "l2",
+    contestId: "c2",
+    contestTitle: "Champions League Round of 16",
+    players: mockPlayers.slice(5, 10),
+    points: 0,
+    status: "upcoming",
+  },
 ];
 
 export const mockLeaderboard: LeaderboardEntry[] = [
@@ -89,4 +242,14 @@ export const mockLeaderboard: LeaderboardEntry[] = [
   { rank: 8, username: "TransferGuru", points: 110, lineup: ["Salah", "Haaland", "Rice"] },
   { rank: 9, username: "WingPlayWizard", points: 106, lineup: ["Saka", "Foden", "Palmer"] },
   { rank: 10, username: "CleanSheetKing", points: 101, lineup: ["van Dijk", "Saliba", "Alisson"] },
+];
+
+export const mockLiveEvents: LiveEvent[] = [
+  { id: "e1", match: "MCI vs LIV", team: "Man City", player: "Haaland", type: "GOAL", minute: 24, points: 10 },
+  { id: "e2", match: "MCI vs LIV", team: "Man City", player: "De Bruyne", type: "ASSIST", minute: 24, points: 5 },
+  { id: "e3", match: "ARS vs CHE", team: "Arsenal", player: "Saka", type: "GOAL", minute: 38, points: 10 },
+  { id: "e4", match: "TOT vs MUN", team: "Tottenham", player: "Son", type: "YELLOW_CARD", minute: 42, points: -2 },
+  { id: "e5", match: "MCI vs LIV", team: "Liverpool", player: "van Dijk", type: "YELLOW_CARD", minute: 82, points: -1 },
+  { id: "e6", match: "ARS vs CHE", team: "Arsenal", player: "Saka", type: "GOAL", minute: 12, points: 6 },
+  { id: "e7", match: "ARS vs CHE", team: "Chelsea", player: "Palmer", type: "GOAL", minute: 89, points: 6 },
 ];
