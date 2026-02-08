@@ -82,11 +82,10 @@ export default function Index() {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  filter === f.value
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${filter === f.value
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
               >
                 {f.label}
               </button>

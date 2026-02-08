@@ -69,7 +69,12 @@
     @apply bg-background text-foreground font-body antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display;
   }
 }
@@ -102,7 +107,7 @@
   .neon-border {
     @apply border border-primary/30;
     box-shadow: inset 0 0 15px -5px hsl(var(--neon) / 0.1),
-                0 0 15px -5px hsl(var(--neon) / 0.15);
+      0 0 15px -5px hsl(var(--neon) / 0.15);
   }
 
   .gradient-radial {

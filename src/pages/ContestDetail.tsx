@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Trophy, Users, Swords, ChevronRight } from "lucide-react";
+import { ArrowLeft, Clock, Trophy, Users, Swords, ChevronRight, Ticket, DollarSign } from "lucide-react";
 import { mockContests, mockPlayers } from "@/data/mockData";
 import { useCountdown } from "@/hooks/useCountdown";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +40,18 @@ export default function ContestDetail() {
             {contest.status.toUpperCase()}
           </Badge>
           <h1 className="font-display text-3xl font-bold text-foreground mb-2">{contest.title}</h1>
-          <p className="text-muted-foreground">Free entry • Compete for glory</p>
+          <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-2 bg-gold/10 border border-gold/20 rounded-lg px-4 py-2">
+              <Trophy className="w-5 h-5 text-gold" />
+              <span className="font-display text-xl font-bold text-gold">{contest.prizePool}</span>
+            </div>
+            <div className="flex items-center gap-2 bg-muted/60 border border-border rounded-lg px-4 py-2">
+              <Ticket className="w-4 h-4 text-muted-foreground" />
+              <span className="font-display text-lg font-semibold text-foreground">
+                {contest.entryFee === 0 ? "FREE ENTRY" : `$${contest.entryFee} Entry`}
+              </span>
+            </div>
+          </div>
         </motion.div>
 
         {/* Info Cards */}
@@ -51,8 +62,8 @@ export default function ContestDetail() {
           className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8"
         >
           {[
-            { icon: Users, label: "Entrants", value: contest.entrants.toLocaleString() },
-            { icon: Trophy, label: "Prize", value: contest.prizePool },
+            { icon: Users, label: "Entrants", value: `${contest.entrants.toLocaleString()} / ${contest.maxEntrants.toLocaleString()}` },
+            { icon: DollarSign, label: "Entry Fee", value: contest.entryFee === 0 ? "FREE" : `$${contest.entryFee}` },
             { icon: Clock, label: "Countdown", value: contest.status === "open" ? countdown : contest.status === "locked" ? "LIVE" : "FINAL" },
             { icon: Swords, label: "Matches", value: contest.matches.length.toString() },
           ].map((item) => (
@@ -100,6 +111,17 @@ export default function ContestDetail() {
               <Button className="w-full h-14 text-lg font-display font-bold glow-md rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all">
                 Build Your Lineup
                 <ChevronRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </motion.div>
+        )}
+
+        {contest.status === "completed" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <Link to={`/contest/${contest.id}/results`}>
+              <Button className="w-full h-14 text-lg font-display font-bold rounded-xl bg-gold/10 text-gold border border-gold/30 hover:bg-gold/20 transition-all">
+                <Trophy className="w-5 h-5 mr-2" />
+                View Final Results
               </Button>
             </Link>
           </motion.div>
