@@ -1,7 +1,17 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy, Swords, LayoutGrid, Shield, Menu, X } from "lucide-react";
+import { Trophy, Swords, LayoutGrid, Shield, Menu, X, User, LogIn, UserPlus, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Contests", path: "/", icon: Swords },
@@ -30,31 +40,35 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
-              const active = isActive(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <item.icon className="w-4 h-4" />
-                    {item.label}
-                  </span>
-                  {active && (
-                    <motion.div
-                      layoutId="nav-indicator"
-                      className="absolute inset-0 bg-primary/10 rounded-lg border border-primary/20"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                </Link>
-              );
-            })}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              {navItems.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <item.icon className="w-4 h-4" />
+                      {item.label}
+                    </span>
+                    {active && (
+                      <motion.div
+                        layoutId="nav-indicator"
+                        className="absolute inset-0 bg-primary/10 rounded-lg border border-primary/20"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Auth Section */}
+            <AuthSection />
           </div>
 
           {/* Mobile toggle */}
@@ -78,17 +92,118 @@ export function Navbar() {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  active ? "text-primary bg-primary/10" : "text-muted-foreground"
-                }`}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${active ? "text-primary bg-primary/10" : "text-muted-foreground"
+                  }`}
               >
                 <item.icon className="w-4 h-4" />
                 {item.label}
               </Link>
             );
           })}
+
+          {/* Mobile Auth Section */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <MobileAuthSection onClose={() => setMobileOpen(false)} />
+          </div>
         </motion.div>
       )}
     </nav>
+  );
+}
+
+function AuthSection() {
+  const { user, isAuthenticated, logout } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center gap-2">
+        <Link to="/login">
+          <Button variant="ghost" size="sm" className="gap-2">
+            <LogIn className="w-4 h-4" />
+            Sign In
+          </Button>
+        </Link>
+        <Link to="/register">
+          <Button size="sm" className="gap-2 glow-sm">
+            <UserPlus className="w-4 h-4" />
+            Sign Up
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-2">
+          <User className="w-4 h-4" />
+          {user?.username}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel>
+          <div className="flex flex-col">
+            <span className="font-semibold">{user?.username}</span>
+            <span className="text-xs text-muted-foreground font-normal">{user?.email}</span>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/my-lineups" className="cursor-pointer">
+            <LayoutGrid className="w-4 h-4 mr-2" />
+            My Lineups
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive">
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function MobileAuthSection({ onClose }: { onClose: () => void }) {
+  const { user, isAuthenticated, logout } = useAuth();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Link to="/login" onClick={onClose}>
+          <Button variant="ghost" className="w-full justify-start gap-2">
+            <LogIn className="w-4 h-4" />
+            Sign In
+          </Button>
+        </Link>
+        <Link to="/register" onClick={onClose}>
+          <Button className="w-full justify-start gap-2 glow-sm">
+            <UserPlus className="w-4 h-4" />
+            Sign Up
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="px-3 py-2">
+        <p className="font-semibold text-foreground">{user?.username}</p>
+        <p className="text-xs text-muted-foreground">{user?.email}</p>
+      </div>
+      <Button
+        variant="ghost"
+        onClick={() => {
+          logout();
+          onClose();
+        }}
+        className="w-full justify-start gap-2 text-destructive"
+      >
+        <LogOut className="w-4 h-4" />
+        Sign Out
+      </Button>
+    </div>
   );
 }

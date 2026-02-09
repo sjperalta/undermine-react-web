@@ -1,6 +1,6 @@
 import { useState, createContext, useContext, ReactNode } from "react";
-import { Contest, Player, Position } from "../data/types";
-import { mockPlayers, mockContests } from "../data/mockData";
+import { Contest, Player, Position } from "@/data/types";
+import { mockPlayers, mockContests } from "@/data/mockData";
 
 export interface MatchStat {
   playerId: string;
@@ -17,7 +17,18 @@ export interface MatchStat {
   fantasyPoints: number;
 }
 
-export interface AdminContest extends Contest {
+export interface AdminContest {
+  id: string;
+  title: string;
+  status: "draft" | "open" | "locked" | "completed";
+  entryFee: number;
+  prizePool: string;
+  entrants: number;
+  maxEntrants: number;
+  startTime: string;
+  endTime: string;
+  salaryCap: number;
+  matches: string[];
   scored: boolean;
   matchStats: MatchStat[];
 }

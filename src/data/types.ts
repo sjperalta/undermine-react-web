@@ -88,3 +88,30 @@ export interface UserLineup {
   rank?: number;
   status: "upcoming" | "live" | "completed";
 }
+
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  joinedAt: string;
+  stats: UserStats;
+}
+
+export interface UserLineupSubmission {
+  id: string;
+  userId: string;
+  contestId: string;
+  lineup: LineupSlot[];
+  submittedAt: string;
+  locked: boolean;
+  totalSalary: number;
+}
+
+export interface ContestEntry {
+  id: string;
+  userId: string;
+  contestId: string;
+  joinedAt: string;
+  hasSubmittedLineup: boolean;
+  lineupId?: string;
+}

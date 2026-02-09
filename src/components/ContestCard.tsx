@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Trophy, Users, Clock, ChevronRight, Zap } from "lucide-react";
+import { Trophy, Users, Clock, ChevronRight, Zap, CheckCircle2 } from "lucide-react";
 import { Contest } from "@/data/types";
 import { useCountdown } from "@/hooks/useCountdown";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "DRAFT", className: "bg-muted text-muted-foreground border-border" },
 };
 
-export function ContestCard({ contest, index }: { contest: Contest; index: number }) {
+export function ContestCard({ contest, index, isJoined }: { contest: Contest; index: number; isJoined?: boolean }) {
   const countdown = useCountdown(contest.startTime);
   const status = statusConfig[contest.status];
   const fillPercent = (contest.entrants / contest.maxEntrants) * 100;
@@ -36,12 +36,18 @@ export function ContestCard({ contest, index }: { contest: Contest; index: numbe
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-primary/5 via-transparent to-transparent" />
 
           <div className="relative z-10">
-            {/* Header */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <Badge variant="outline" className={status.className + " text-[10px] font-bold tracking-widest mb-2"}>
-                  {status.label}
-                </Badge>
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline" className={status.className + " text-[10px] font-bold tracking-widest"}>
+                    {status.label}
+                  </Badge>
+                  {isJoined && (
+                    <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 text-[10px] font-bold tracking-widest">
+                      <CheckCircle2 className="w-3 h-3 mr-1" /> JOINED
+                    </Badge>
+                  )}
+                </div>
                 <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
                   {contest.title}
                 </h3>

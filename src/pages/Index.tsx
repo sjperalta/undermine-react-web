@@ -24,6 +24,7 @@ import {
   mockPlayerNews,
   mockOwnershipTrends
 } from "@/data/mockData";
+import { useContest } from "@/contexts/ContestContext";
 
 const filters: { label: string; value: ContestStatus | "all" }[] = [
   { label: "All", value: "all" },
@@ -41,6 +42,7 @@ const stats = [
 export default function Index() {
   const [filter, setFilter] = useState<ContestStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const { hasJoinedContest } = useContest();
 
   const filtered = useMemo(() => {
     let result = filter === "all" ? mockContests : mockContests.filter((c) => c.status === filter);
@@ -220,7 +222,12 @@ export default function Index() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               {filtered.map((contest, i) => (
-                <ContestCard key={contest.id} contest={contest} index={i} />
+                <ContestCard
+                  key={contest.id}
+                  contest={contest}
+                  index={i}
+                  isJoined={hasJoinedContest(contest.id)}
+                />
               ))}
               {filtered.length === 0 && (
                 <div className="col-span-2 text-center py-16 text-muted-foreground bg-muted/20 border border-dashed border-border rounded-2xl">

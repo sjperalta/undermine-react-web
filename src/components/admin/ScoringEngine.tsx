@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Play, CheckCircle2, ChevronDown, Trophy, Terminal, Loader2, ShieldCheck, Database, LayoutPanelTop, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAdmin } from "../../contexts/AdminContext";
+import { useAdmin } from "@/contexts/AdminContext";
+import { useScoring } from "@/contexts/ScoringContext";
+import { mockPlayers } from "@/data/mockData";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -14,91 +16,100 @@ interface LogEntry {
 }
 
 export function ScoringEngine() {
-  const { contests, scoreContest } = useAdmin();
+  const { contests } = useAdmin();
+  const { addEvent, resetSimulation, liveEvents, liveScores } = useScoring();
   const [selectedContest, setSelectedContest] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [processingState, setProcessingState] = useState<"idle" | "validating" | "computing" | "propagating" | "done">("idle");
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [progress, setProgress] = useState(0);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simSpeed, setSimSpeed] = useState(1);
+  const [gameMinute, setGameMinute] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const eligibleContests = contests.filter(
-    (c) => c.matchStats?.length > 0 && (c.status === "locked" || c.status === "completed")
+    (c) => c.status === "open" || c.status === "locked" || c.status === "completed"
   );
 
   const selectedContestObj = contests.find((c) => c.id === selectedContest);
-  const activeStats = selectedContestObj?.matchStats?.filter((s) => s.minutesPlayed > 0) ?? [];
-
+  // Auto-scroll logs
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [liveEvents]);
 
-  const addLog = (msg: string, type: LogEntry["type"] = "info") => {
-    setLogs(prev => [...prev, {
-      id: Math.random().toString(36).substr(2, 9),
-      msg,
-      type,
-      timestamp: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    }]);
-  };
-
-  const runPhase = async (phase: typeof processingState, duration: number, logs: string[]) => {
-    setProcessingState(phase);
-    const stepTime = duration / logs.length;
-    for (const log of logs) {
-      addLog(log);
-      await new Promise(r => setTimeout(r, stepTime));
+  const toggleSimulation = () => {
+    if (isSimulating) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      setIsSimulating(false);
+    } else {
+      setIsSimulating(true);
     }
   };
 
-  const handleScore = async () => {
-    if (!selectedContest || !selectedContestObj) return;
-
-    setProcessingState("validating");
-    setLogs([]);
-    setProgress(0);
-
-    addLog("Initializing Scoring Engine v2.0...", "system");
-    await new Promise(r => setTimeout(r, 600));
-
-    // Phase 1: Validation
-    await runPhase("validating", 1200, [
-      `Validating contest: ${selectedContestObj.title}`,
-      `Checking match signatures... OK`,
-      `Verifying ${activeStats.length} player stat blocks...`,
-      "Data integrity check passed."
-    ]);
-    setProgress(33);
-
-    // Phase 2: Computing
-    await runPhase("computing", 2000, [
-      "Accessing algorithmic point-mapping...",
-      "Calculating goal distributions...",
-      "Mapping clean sheet bonuses...",
-      "Applying penalty/card deductions...",
-      "Optimizing point totals..."
-    ]);
-    setProgress(66);
-    scoreContest(selectedContest);
-
-    // Phase 3: Propagating
-    await runPhase("propagating", 1000, [
-      "Broadcasting results to global state...",
-      "Updating user leaderboards...",
-      "Finalizing contest status..."
-    ]);
-    setProgress(100);
-
-    setProcessingState("done");
-    addLog("ENGINE CYCLE COMPLETE. ALL SCORES PROPAGATED.", "success");
-    toast.success("🎯 Scoring complete!");
+  const handleReset = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setIsSimulating(false);
+    setGameMinute(0);
+    resetSimulation();
   };
 
-  const scoredStats = selectedContestObj?.matchStats
-    ?.filter((s) => s.fantasyPoints !== 0 || s.minutesPlayed > 0)
-    .sort((a, b) => b.fantasyPoints - a.fantasyPoints) ?? [];
+  // Simulation Loop
+  useEffect(() => {
+    if (isSimulating && selectedContest) {
+      intervalRef.current = setInterval(() => {
+        setGameMinute((prev) => {
+          if (prev >= 90) {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            setIsSimulating(false);
+            toast.success("Match ended!");
+            return 90;
+          }
+          return prev + 1;
+        });
+
+        // Randomly generate events
+        if (Math.random() < 0.15) { // 15% chance of event per tick
+          // Pick random player
+          // In a real app, this would be players from the specific matches in the contest
+          const player = mockPlayers[Math.floor(Math.random() * mockPlayers.length)];
+
+          const rand = Math.random();
+          let type: "GOAL" | "ASSIST" | "YELLOW_CARD" | "RED_CARD" | "SAVE" | "PENALTY" = "GOAL";
+          let points = 0;
+
+          if (rand < 0.05) { type = "RED_CARD"; points = -3; }
+          else if (rand < 0.15) { type = "YELLOW_CARD"; points = -1; }
+          else if (rand < 0.4) { type = "ASSIST"; points = 6; }
+          else if (rand < 0.6) { type = "GOAL"; points = 10; } // Increased goal probability for demo
+          else if (rand < 0.8) { type = "SAVE"; points = 2; }
+          else { type = "PENALTY"; points = -2; } // Penalty conceded
+
+          if (player.position === "GK" && type === "GOAL") points = 100; // GK Goal bonus lol
+
+          addEvent({
+            match: "SIM vs SIM", // Placeholder
+            team: player.team,
+            player: player.name,
+            type,
+            minute: gameMinute,
+            points
+          });
+        }
+
+      }, 1000 / simSpeed);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isSimulating, selectedContest, simSpeed, gameMinute, addEvent]);
+
+  // Derived stats for UI
+  const scoredPlayers = Object.entries(liveScores).map(([name, stats]) => ({
+    name,
+    ...stats
+  })).sort((a, b) => b.points - a.points);
 
   return (
     <div className="space-y-6">
@@ -106,22 +117,35 @@ export function ScoringEngine() {
       <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl">
         <div className="bg-muted/30 px-6 py-5 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg bg-primary/10 border border-primary/20 ${processingState !== 'idle' ? 'animate-pulse' : ''}`}>
+            <div className={`p-2 rounded-lg bg-primary/10 border border-primary/20 ${isSimulating ? 'animate-pulse' : ''}`}>
               <Zap className="w-5 h-5 text-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-foreground leading-none">Scoring Engine</h2>
-              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Algorithmic Processing Unit</p>
+              <h2 className="font-display text-lg font-bold text-foreground leading-none">Live Simulation Node</h2>
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Real-time Event Generator</p>
             </div>
           </div>
-          <Badge variant="outline" className="bg-background/50 border-border text-[9px] font-bold">V2.4.0-CORE</Badge>
+          <div className="flex items-center gap-3">
+            <div className="flex bg-muted/20 rounded-lg p-1">
+              {[1, 5, 10, 50].map(speed => (
+                <button
+                  key={speed}
+                  onClick={() => setSimSpeed(speed)}
+                  className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${simSpeed === speed ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {speed}x
+                </button>
+              ))}
+            </div>
+            <Badge variant="outline" className="bg-background/50 border-border text-[9px] font-bold">V3.0-LIVE</Badge>
+          </div>
         </div>
 
         <div className="p-6">
           <div className="relative mb-6">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              disabled={processingState !== 'idle' && processingState !== 'done'}
+              disabled={isSimulating}
               className="w-full flex items-center justify-between bg-muted/20 border border-border rounded-xl px-5 py-4 text-sm text-left hover:bg-muted/30 transition-all group"
             >
               <div>
@@ -177,51 +201,51 @@ export function ScoringEngine() {
               <div className="bg-[#0c0c0e] rounded-xl border border-white/5 p-4 font-mono text-[11px] h-[240px] flex flex-col shadow-inner relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#0c0c0e] to-transparent z-10 pointer-events-none" />
                 <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-1 relative pr-2 scrollbar-hide py-4">
-                  {logs.length === 0 && (
+                  {liveEvents.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center opacity-20">
                       <Terminal className="w-8 h-8 mb-2" />
                       <span>WAITING FOR INPUT...</span>
                     </div>
                   )}
-                  {logs.map((log) => (
+                  {liveEvents.map((log) => (
                     <div key={log.id} className="flex gap-3">
-                      <span className="text-white/20 shrink-0">[{log.timestamp}]</span>
+                      <span className="text-white/20 shrink-0 w-8 text-right">{log.minute}'</span>
                       <span className={`
-                        ${log.type === 'success' ? 'text-green-400' :
-                          log.type === 'warning' ? 'text-yellow-400' :
-                            log.type === 'error' ? 'text-red-400' :
-                              log.type === 'system' ? 'text-primary' : 'text-white/70'}
+                        ${log.type === 'GOAL' ? 'text-green-400 font-bold' :
+                          log.type === 'ASSIST' ? 'text-blue-400' :
+                            log.type === 'RED_CARD' ? 'text-red-500 font-bold' :
+                              log.type === 'YELLOW_CARD' ? 'text-yellow-400' : 'text-white/70'}
                       `}>
-                        {log.msg}
+                        {log.type}: {log.player} ({log.team}) <span className="opacity-50 text-[10px] ml-2">+{log.points}pts</span>
                       </span>
                     </div>
                   ))}
                 </div>
-                {processingState !== 'idle' && processingState !== 'done' && (
-                  <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-white/40">
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      PHASE: {processingState.toUpperCase()}
-                    </span>
-                    <span>{progress}%</span>
-                  </div>
-                )}
+                <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-white/40">
+                  <span className="flex items-center gap-2">
+                    <Clock className={`w-3 h-3 ${isSimulating ? "text-live animate-pulse" : ""}`} />
+                    MATCH TIME: {gameMinute}'
+                  </span>
+                  <span>{liveEvents.length} EVENTS</span>
+                </div>
               </div>
 
-              <Button
-                onClick={handleScore}
-                disabled={!selectedContest || (processingState !== 'idle' && processingState !== 'done') || activeStats.length === 0}
-                className="w-full h-14 text-sm font-black uppercase tracking-[0.2em] rounded-xl relative overflow-hidden group"
-              >
-                <div className="absolute inset-0 bg-primary/20 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
-                <span className="relative z-10 flex items-center gap-3">
-                  {processingState === 'idle' || processingState === 'done' ? (
-                    <><Play className="w-4 h-4 fill-current" /> {processingState === 'done' ? "Re-Run" : "Execute"} Engine</>
-                  ) : (
-                    <><Zap className="w-4 h-4 animate-pulse" /> Processing Core...</>
-                  )}
-                </span>
-              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={toggleSimulation}
+                  disabled={!selectedContest || gameMinute >= 90}
+                  className={`h-14 text-sm font-black uppercase tracking-widest rounded-xl ${isSimulating ? "bg-red-500/10 text-red-500 hover:bg-red-500/20" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
+                >
+                  {isSimulating ? "PAUSE SIM" : "START SIM"}
+                </Button>
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="h-14 text-sm font-bold uppercase tracking-widest rounded-xl border-border bg-transparent hover:bg-muted/10"
+                >
+                  RESET
+                </Button>
+              </div>
             </div>
 
             {/* Verification Checklist */}
@@ -232,10 +256,10 @@ export function ScoringEngine() {
               </h4>
               <div className="space-y-3">
                 {[
-                  { label: "Data Integrity", ok: selectedContestObj?.matchStats?.length > 0 },
-                  { label: "Contest Locked", ok: selectedContestObj?.status === 'locked' || selectedContestObj?.status === 'completed' },
-                  { label: "Scoring Mapping", ok: true },
-                  { label: "Validation Engine", ok: true }
+                  { label: "Contest Selected", ok: !!selectedContestObj },
+                  { label: "Simulation Ready", ok: !!selectedContestObj },
+                  { label: "Scoring Bridge", ok: true },
+                  { label: "Live Connection", ok: isSimulating }
                 ].map((item) => (
                   <div key={item.label} className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-foreground/80">{item.label}</span>
@@ -260,7 +284,7 @@ export function ScoringEngine() {
 
       {/* Results with Reveal Animation */}
       <AnimatePresence>
-        {processingState === 'done' && scoredStats.length > 0 && (
+        {scoredPlayers.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -275,9 +299,9 @@ export function ScoringEngine() {
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {scoredStats.slice(0, 12).map((stat, i) => (
+              {scoredPlayers.slice(0, 12).map((stat, i) => (
                 <motion.div
-                  key={stat.playerId}
+                  key={stat.name}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.05 }}
@@ -288,13 +312,13 @@ export function ScoringEngine() {
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{stat.playerName}</p>
+                    <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{stat.name}</p>
                     <p className="text-[10px] text-muted-foreground font-medium truncate uppercase tracking-tighter">
-                      {stat.goals}G • {stat.assists}A • {stat.minutesPlayed}'
+                      {stat.goals}G • {stat.assists}A • {stat.shots} Shots
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-display font-black text-foreground">{stat.fantasyPoints}</p>
+                    <p className="text-lg font-display font-black text-foreground">{stat.points}</p>
                     <p className="text-[8px] font-bold text-muted-foreground uppercase">Points</p>
                   </div>
                 </motion.div>
