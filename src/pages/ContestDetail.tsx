@@ -1,16 +1,26 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Trophy, Users, Swords, ChevronRight, Ticket, DollarSign } from "lucide-react";
+import { ArrowLeft, Clock, Trophy, Users, Swords, ChevronRight, Ticket, DollarSign, CheckCircle2 } from "lucide-react";
 import { mockContests, mockPlayers } from "@/data/mockData";
 import { useCountdown } from "@/hooks/useCountdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScoringRules } from "@/components/dashboard/ScoringRules";
+import { useAuth } from "@/contexts/AuthContext";
+import { useContest } from "@/contexts/ContestContext";
+import { toast } from "sonner";
 
 export default function ContestDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { joinContest, hasJoinedContest, getLineup } = useContest();
   const contest = mockContests.find((c) => c.id === id);
   const countdown = useCountdown(contest?.startTime ?? "");
+
+  const hasJoined = contest ? hasJoinedContest(contest.id) : false;
+  const lineup = contest ? getLineup(contest.id) : undefined;
+  const isLocked = contest?.status === "locked" || contest?.status === "completed";
 
   if (!contest) {
     return (
@@ -112,12 +122,58 @@ export default function ContestDetail() {
         {/* CTA */}
         {contest.status === "open" && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Link to={`/contest/${contest.id}/build`}>
-              <Button className="w-full h-14 text-lg font-display font-bold glow-md rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all">
-                Build Your Lineup
+            {!hasJoined ? (
+              <Button
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    toast.error("Please sign in to join contests");
+                    navigate("/login");
+                    return;
+                  }
+
+                  const success = joinContest(contest.id);
+                  if (success) {
+                    toast.success("Successfully joined contest!");
+                    navigate(`/contest/${contest.id}/build`);
+                  } else {
+                    toast.error("You've already joined this contest");
+                  }
+                }}
+                className="w-full h-14 text-lg font-display font-bold glow-md rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+              >
+                Join Contest & Build Lineup
                 <ChevronRight className="w-5 h-5 ml-2" />
               </Button>
-            </Link>
+            ) : (
+              <div className="space-y-3">
+                <div className="glass rounded-xl p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                    <span className="font-semibold text-foreground">Contest Joined</span>
+                  </div>
+                  {lineup && (
+                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                      Lineup {lineup.lineup.filter(s => s.player).length > 0 ? "Submitted" : "Draft"}
+                    </Badge>
+                  )}
+                </div>
+                <Link to={`/contest/${contest.id}/build`}>
+                  <Button className="w-full h-14 text-lg font-display font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all">
+                    {lineup && lineup.lineup.filter(s => s.player).length > 0 ? "Edit" : "Build"} Your Lineup
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {contest.status === "locked" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <div className="glass rounded-xl p-6 text-center">
+              <p className="text-lg font-semibold text-foreground mb-2">Contest is Live</p>
+              <p className="text-sm text-muted-foreground">Lineup changes are no longer allowed</p>
+            </div>
           </motion.div>
         )}
 

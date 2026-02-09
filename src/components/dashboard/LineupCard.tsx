@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { UserLineup } from "@/data/types";
 import { Trophy, Users, Timer, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -31,15 +31,25 @@ export function LineupCard({ lineup, index }: LineupCardProps) {
             <div className="p-5">
                 <div className="flex justify-between items-start mb-4">
                     <div>
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${getStatusColor(lineup.status)}`}>
-                            {lineup.status === 'live' ? '• LIVE' : lineup.status}
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter flex items-center gap-1 w-fit ${getStatusColor(lineup.status)}`}>
+                            {lineup.status === 'live' && <span className="w-1 h-1 rounded-full bg-red-500 animate-pulse" />}
+                            {lineup.status === 'live' ? 'LIVE' : lineup.status}
                         </span>
                         <h3 className="text-lg font-display font-bold text-foreground mt-2 group-hover:text-primary transition-colors">
                             {lineup.contestTitle}
                         </h3>
                     </div>
                     <div className="text-right">
-                        <p className="text-2xl font-display font-black text-foreground leading-none">{lineup.points}</p>
+                        <AnimatePresence mode="wait">
+                            <motion.p
+                                key={lineup.points}
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="text-2xl font-display font-black text-foreground leading-none"
+                            >
+                                {lineup.points.toFixed(1)}
+                            </motion.p>
+                        </AnimatePresence>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase">Points</p>
                     </div>
                 </div>

@@ -1,12 +1,16 @@
 import { motion } from "framer-motion";
 import { LayoutGrid, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
-import { mockUserLineups } from "@/data/mockData";
+import { useContest } from "@/contexts/ContestContext";
+import { mockContests } from "@/data/mockData";
+import { UserLineup } from "@/data/types";
 import { LineupCard } from "@/components/dashboard/LineupCard";
 import { LineupHealth } from "@/components/dashboard/LineupHealth";
 
 export default function MyLineups() {
-  const hasLineups = mockUserLineups.length > 0;
+  const { lineups: displayLineups } = useContest();
+
+  const hasLineups = displayLineups.length > 0;
 
   return (
     <div className="min-h-screen pt-24 pb-20 bg-background">
@@ -50,7 +54,7 @@ export default function MyLineups() {
         ) : (
           <div className="grid lg:grid-cols-[1fr_320px] gap-12 items-start">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              {mockUserLineups.map((lineup, i) => (
+              {displayLineups.map((lineup, i) => (
                 <LineupCard key={lineup.id} lineup={lineup} index={i} />
               ))}
             </div>
